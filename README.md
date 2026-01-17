@@ -31,21 +31,17 @@ A VSCode-style terminal IDE built on TMUX. Features a modular multi-pane layout 
 
 ## Installation
 
-### 1. Install Parallax first
-
 ```bash
-git clone https://github.com/samir-alsayad/parallax.git
-cd parallax
-./install.sh
-```
-
-### 2. Install Nexus-Shell
-
-```bash
-git clone https://github.com/samir-alsayad/nexus-shell.git
+git clone --recursive https://github.com/samir-alsayad/nexus-shell.git
 cd nexus-shell
 ./install.sh
 ```
+
+The installer will:
+1.  Initialize and install the **Parallax** submodule
+2.  Optionally download tools (nvim, yazi, glow, gum)
+3.  Set up Nexus-specific Parallax actions
+4.  Configure shell integration
 
 The installer will ask:
 - **Download tools?** - Downloads nvim, yazi, glow to `~/.nexus-shell/bin/`
@@ -63,6 +59,23 @@ nxs
 ```
 
 ## Commands
+
+### Parallax Integration (Deep Mode)
+
+Nexus-Shell is powered by **Parallax**. Use `Alt+P` to open the Parallax dashboard as a popup overlay.
+
+| Key | Action |
+|-----|--------|
+| `Alt+P` | Open Parallax Dashboard |
+| `Ctrl+Shift+A` | Quick Actions Menu |
+| `:px` | Open Parallax (Command) |
+| `:a` | Quick Actions (Command) |
+
+Configure the Parallax UI in `~/.config/nexus-shell/tools.conf`:
+```bash
+NEXUS_PX_UI="gum"   # Use sleek gum popups
+NEXUS_PX_UI="tmux"  # Use standard tmux dashboard (default)
+```
 
 ### Global (Ctrl+\ then type)
 

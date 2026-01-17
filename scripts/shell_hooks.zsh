@@ -16,6 +16,14 @@ mkdir -p "$NEXUS_STATE"
 alias edit="$NEXUS_HOME/scripts/open.sh edit"
 alias view="$NEXUS_HOME/scripts/open.sh view"
 
+# === Parallax Integration ===
+# Only auto-link inside Nexus sessions or if explicitly forced
+if [[ -n "$NEXUS_PROJECT" || -n "$PX_FORCE_LINK" ]]; then
+    if [[ -f "$HOME/.parallax/bin/px-link" ]]; then
+        source "$HOME/.parallax/bin/px-link"
+    fi
+fi
+
 # === Directory Sync ===
 # Tracks current directory for cross-pane awareness
 
