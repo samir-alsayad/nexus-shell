@@ -2,7 +2,7 @@
 
 Transform your terminal into a powerhouse. **Nexus-Shell** is a modular, high-performance terminal IDE built on TMUX, powered by the **Parallax** automation engine. 
 
-![Nexus-Shell Preview](https://github.com/samir-alsayad/nexus-shell/raw/main/Screenshot%202026-01-17%20at%2019.23.02.png)
+![Nexus-Shell Preview](https://github.com/samir-alsayad/nexus-shell/raw/main/preview.png)
 
 ## 🌌 Nexus-Shell: The Interface
 Nexus-Shell isn't just a config; it's a carefully crafted environment that bridges the gap between terminal speed and modern IDE features.

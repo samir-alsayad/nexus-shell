@@ -1,16 +1,10 @@
 # Nexus-Shell
 
-A VSCode-style terminal IDE built on TMUX. Features a modular multi-pane layout with Neovim, Yazi file navigator, integrated terminal, and optional AI chat.
+**Transform your terminal into a powerhouse.** Nexus-Shell is a modular, high-performance terminal IDE built on TMUX, powered by the **Parallax** automation engine.
 
-```
-┌─────────┬────────────────────────┬─────────────┐
-│         │        EDITOR          │             │
-│  TREE   │       (Neovim)         │    CHAT     │
-│ (Yazi)  ├────────────────────────┤ (Optional)  │
-│  15%    │      TERMINAL (Zsh)    │     25%     │
-│         │          60%           │             │
-└─────────┴────────────────────────┴─────────────┘
-```
+![Nexus-Shell Preview](./preview.png)
+
+A VSCode-style terminal IDE with a focus on speed, modularity, and "indestructible" workflows. Features a multi-pane layout with Neovim, Yazi, integrated terminal, and optional AI chat.
 
 ## Features
 
