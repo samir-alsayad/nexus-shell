@@ -2,7 +2,7 @@
 
 # --- Nexus Global Command Dispatcher ---
 # Handles commands from the ':' prompt in TMUX
-# UI-only version (no Letta/backend commands)
+# UI command dispatcher (TMUX)
 
 CMD="$1"
 NEXUS_HOME="${NEXUS_HOME:-$HOME/.config/nexus-shell}"
