@@ -30,7 +30,14 @@ run_tool() {
     fi
     # No clear here - let the tool handle its own display
     eval "$COMMAND"
-    return $?
+    local exit_code=$?
+    if [[ $exit_code -ne 0 && $exit_code -ne 130 ]]; then
+        echo -e "\n\033[1;31m[!] Tool exited with code $exit_code\033[0m"
+        echo "    Command: $COMMAND"
+        echo "    Press Enter to return to Hub..."
+        read
+    fi
+    return $exit_code
 }
 
 show_hub() {

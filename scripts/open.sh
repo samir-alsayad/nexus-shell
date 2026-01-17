@@ -37,8 +37,12 @@ MODE_FILE="$NEXUS_STATE/editor_mode"
 WRAPPER="$NEXUS_SCRIPTS/pane_wrapper.sh"
 
 # Find the editor/render pane
-EDITOR_PANE=$(tmux list-panes -F "#{pane_id} #{pane_title}" 2>/dev/null | grep -E "editor|render" | head -1 | awk '{print $1}')
-[[ -z "$EDITOR_PANE" ]] && EDITOR_PANE="%1"
+if [[ "${PX_NEXUS_EDITOR_PANE:- -1}" -ge 0 ]]; then
+    EDITOR_PANE="$PX_NEXUS_EDITOR_PANE"
+else
+    EDITOR_PANE=$(tmux list-panes -F "#{pane_id} #{pane_title}" 2>/dev/null | grep -E "editor|render" | head -1 | awk '{print $1}')
+    [[ -z "$EDITOR_PANE" ]] && EDITOR_PANE="%1"
+fi
 
 # Update state
 mkdir -p "$NEXUS_STATE/pipes"
@@ -49,9 +53,9 @@ case "$ACTION" in
         # Ensure we're in editor mode
         echo "editor" > "$MODE_FILE"
         
-        if [[ -S "$NVIM_PIPE" ]] && command -v nvim &>/dev/null; then
+        if [[ -S "$NVIM_PIPE" ]]; then
             # Nvim is running - send file via RPC
-            nvim --server "$NVIM_PIPE" --remote-send "<Esc>:e $ABS_FILE<CR>"
+            nvim --server "$NVIM_PIPE" --remote "$ABS_FILE"
         else
             # Start editor with the file
             if [[ "$NEXUS_EDITOR" == *"nvim"* ]]; then

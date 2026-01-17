@@ -4,7 +4,7 @@
 vim.opt.termguicolors = true
 vim.opt.background = "dark"
 vim.opt.number = true
-vim.opt.relativenumber = true
+vim.opt.relativenumber = false
 vim.opt.signcolumn = "yes"
 vim.opt.cursorline = true
 vim.opt.scrolloff = 8

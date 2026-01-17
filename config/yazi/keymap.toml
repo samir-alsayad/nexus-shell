@@ -6,13 +6,13 @@ keymap = [
     { on = ["k"], run = "arrow -1", desc = "Move up" },
     { on = ["j"], run = "arrow 1", desc = "Move down" },
     { on = ["h"], run = "leave", desc = "Go to parent" },
-    { on = ["l"], run = "enter", desc = "Enter directory / Open file" },
+    { on = ["l"], run = ["open --use=nexus_open", "enter"], desc = "Open file / Enter directory" },
     
     # Navigation (arrow keys)
     { on = ["<Up>"], run = "arrow -1", desc = "Move up" },
     { on = ["<Down>"], run = "arrow 1", desc = "Move down" },
     { on = ["<Left>"], run = "leave", desc = "Go to parent" },
-    { on = ["<Right>"], run = "enter", desc = "Enter directory / Open file" },
+    { on = ["<Right>"], run = ["open --use=nexus_open", "enter"], desc = "Open file / Enter directory" },
     
     { on = ["g", "g"], run = "arrow -99999999", desc = "Go to top" },
     { on = ["G"], run = "arrow 99999999", desc = "Go to bottom" },
@@ -23,8 +23,8 @@ keymap = [
     { on = ["V"], run = "visual_mode --unset", desc = "Exit visual mode" },
     
     # Operations
-    { on = ["<Enter>"], run = "open", desc = "Open file in editor" },
-    { on = ["o"], run = "open", desc = "Open file" },
+    { on = ["<Enter>"], run = "open --use=nexus_open", desc = "Open file in editor" },
+    { on = ["o"], run = "open --use=nexus_open", desc = "Open file" },
     { on = ["y"], run = "yank", desc = "Yank (copy)" },
     { on = ["x"], run = "yank --cut", desc = "Cut" },
     { on = ["p"], run = "paste", desc = "Paste" },

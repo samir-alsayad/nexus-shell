@@ -10,10 +10,14 @@ linemode = "size"
 
 [opener]
 edit = [
-    { run = '$HOME/.config/nexus-shell/scripts/yazi_open.sh "$@"', block = true, desc = "Open" }
+    { run = 'zsh $HOME/.config/nexus-shell/scripts/yazi_open.sh "$@"', block = false, desc = "Open in Editor" }
+]
+nexus_open = [
+    { run = 'zsh $HOME/.config/nexus-shell/scripts/yazi_open.sh "$@"', block = false, desc = "Nexus Open" }
 ]
 
 [open]
-rules = [
-    { name = "*", use = "edit" }
+prepend_rules = [
+    { mime = "inode/directory", use = "open" },
+    { name = "*", use = "nexus_open" }
 ]

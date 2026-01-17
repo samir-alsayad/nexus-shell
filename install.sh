@@ -19,16 +19,27 @@ echo ""
 # === Step 0: Check dependencies ===
 echo "[0/6] Checking dependencies..."
 
-# Check for Parallax (required)
+# Initialize submodules if present
+if [[ -d "$NEXUS_HOME/.git" ]]; then
+    echo "    Initializing submodules..."
+    git -C "$NEXUS_HOME" submodule update --init --recursive
+fi
+
+# Install Parallax from submodule if not already installed
 if ! command -v parallax &>/dev/null && [[ ! -f "$HOME/.parallax/bin/parallax" ]]; then
-    echo ""
-    echo "    ERROR: Parallax is required but not installed."
-    echo ""
-    echo "    Install Parallax first:"
-    echo "      git clone https://github.com/samir-alsayad/parallax.git"
-    echo "      cd parallax && ./install.sh"
-    echo ""
-    exit 1
+    if [[ -d "$NEXUS_HOME/modules/parallax" ]]; then
+        echo "    Installing Parallax from submodule..."
+        (cd "$NEXUS_HOME/modules/parallax" && ./install.sh)
+    else
+        echo ""
+        echo "    ERROR: Parallax is required but not installed."
+        echo ""
+        echo "    Install Parallax first:"
+        echo "      git clone https://github.com/samir-alsayad/parallax.git"
+        echo "      cd parallax && ./install.sh"
+        echo ""
+        exit 1
+    fi
 fi
 echo "    Parallax: OK"
 
@@ -52,12 +63,12 @@ echo "[1/6] Tool configuration..."
 echo ""
 echo "    Nexus-Shell can work with:"
 echo "      - Tools downloaded to ~/.nexus-shell/bin/ (isolated)"
-echo "      - System tools from your PATH (nvim, yazi, glow)"
+echo "      - System tools from your PATH (nvim, yazi, glow, gum)"
 echo ""
 
 DOWNLOAD_TOOLS="n"
 if [[ "$1" != "--system" ]]; then
-    read -p "    Download tools? (nvim, yazi, glow, gum) [y/N]: " DOWNLOAD_TOOLS
+    read -p "    Download tools? (nvim, yazi, glow, gum, opencode, micro, lazygit) [y/N]: " DOWNLOAD_TOOLS
 fi
 
 # Create config directory
@@ -96,12 +107,13 @@ if [[ "$DOWNLOAD_TOOLS" =~ ^[Yy]$ ]]; then
         if [[ "$OS_NAME" == "macos" ]]; then
             curl -sL "https://github.com/neovim/neovim/releases/latest/download/nvim-macos-${ARCH_SUFFIX}.tar.gz" -o nvim.tar.gz
             tar -xzf nvim.tar.gz
-            cp nvim-macos-${ARCH_SUFFIX}/bin/nvim "$NEXUS_BIN/"
+            # Copy entire structure (bin, share, lib) to ~/.nexus-shell/
+            cp -r nvim-macos-${ARCH_SUFFIX}/* "$USER_HOME/.nexus-shell/"
             rm -rf nvim.tar.gz nvim-macos-${ARCH_SUFFIX}
         else
             curl -sL "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz" -o nvim.tar.gz
             tar -xzf nvim.tar.gz
-            cp nvim-linux64/bin/nvim "$NEXUS_BIN/"
+            cp -r nvim-linux64/* "$USER_HOME/.nexus-shell/"
             rm -rf nvim.tar.gz nvim-linux64
         fi
     fi
@@ -133,9 +145,10 @@ if [[ "$DOWNLOAD_TOOLS" =~ ^[Yy]$ ]]; then
         else
             curl -sL "https://github.com/charmbracelet/glow/releases/download/${GLOW_TAG}/glow_${GLOW_VER}_Linux_${ARCH_SUFFIX}.tar.gz" -o glow.tar.gz
         fi
-        tar -xzf glow.tar.gz glow
-        mv glow "$NEXUS_BIN/"
-        rm -f glow.tar.gz
+        mkdir -p glow_tmp
+        tar -xzf glow.tar.gz -C glow_tmp
+        find glow_tmp -type f -name "glow" -exec cp {} "$NEXUS_BIN/" \;
+        rm -rf glow.tar.gz glow_tmp
     fi
     
     # Gum
@@ -148,9 +161,73 @@ if [[ "$DOWNLOAD_TOOLS" =~ ^[Yy]$ ]]; then
         else
             curl -sL "https://github.com/charmbracelet/gum/releases/download/${GUM_TAG}/gum_${GUM_VER}_Linux_${ARCH_SUFFIX}.tar.gz" -o gum.tar.gz
         fi
-        tar -xzf gum.tar.gz gum
-        mv gum "$NEXUS_BIN/"
-        rm -f gum.tar.gz
+        mkdir -p gum_tmp
+        tar -xzf gum.tar.gz -C gum_tmp
+        find gum_tmp -type f -name "gum" -exec cp {} "$NEXUS_BIN/" \;
+        rm -rf gum.tar.gz gum_tmp
+    fi
+
+    # OpenCode
+    if [[ ! -x "$NEXUS_BIN/opencode" ]]; then
+        echo "    Downloading OpenCode..."
+        OC_TAG=$(curl -sI https://github.com/anomalyco/opencode/releases/latest | grep -i location | sed 's/.*tag\///' | tr -d '\r\n')
+        
+        if [[ "$OS_NAME" == "macos" ]]; then
+            curl -sL "https://github.com/anomalyco/opencode/releases/download/${OC_TAG}/opencode-darwin-${ARCH_SUFFIX}.zip" -o opencode.zip
+            unzip -oq opencode.zip 2>/dev/null || true
+        else
+            curl -sL "https://github.com/anomalyco/opencode/releases/download/${OC_TAG}/opencode-linux-${ARCH_SUFFIX}.tar.gz" -o opencode.tar.gz
+            tar -xzf opencode.tar.gz 2>/dev/null || true
+        fi
+        
+        if [[ -f "opencode" ]]; then
+            cp opencode "$NEXUS_BIN/"
+        elif [[ -d "opencode_tmp" ]]; then
+            find opencode_tmp -type f -name "opencode" -exec cp {} "$NEXUS_BIN/" \;
+        fi
+        rm -rf opencode opencode.zip opencode.tar.gz opencode_tmp
+    fi
+
+    # Micro
+    if [[ ! -x "$NEXUS_BIN/micro" ]]; then
+        echo "    Downloading Micro..."
+        MICRO_TAG=$(curl -sI https://github.com/zyedidia/micro/releases/latest | grep -i location | sed 's/.*tag\///' | tr -d '\r\n')
+        MICRO_VER="${MICRO_TAG#v}"
+        if [[ "$OS_NAME" == "macos" ]]; then
+            # Micro uses a different naming convention: micro-2.0.14-macos-arm64.tar.gz
+            # ARCH_SUFFIX is arm64 or x86_64
+            curl -sL "https://github.com/zyedidia/micro/releases/download/${MICRO_TAG}/micro-${MICRO_VER}-macos-${ARCH_SUFFIX}.tar.gz" -o micro.tar.gz
+        else
+            curl -sL "https://github.com/zyedidia/micro/releases/download/${MICRO_TAG}/micro-${MICRO_VER}-linux64.tar.gz" -o micro.tar.gz
+        fi
+        if [[ -f micro.tar.gz ]]; then
+            mkdir -p micro_tmp
+            if tar -xzf micro.tar.gz -C micro_tmp 2>/dev/null; then
+                find micro_tmp -type f -name "micro" -exec cp {} "$NEXUS_BIN/" \;
+            else
+                echo "    [!] Warning: Failed to extract Micro archive."
+            fi
+            rm -rf micro.tar.gz micro_tmp
+        else
+            echo "    [!] Warning: Failed to download Micro."
+        fi
+    fi
+
+    # LazyGit
+    if [[ ! -x "$NEXUS_BIN/lazygit" ]]; then
+        echo "    Downloading LazyGit..."
+        LG_TAG=$(curl -sI https://github.com/jesseduffield/lazygit/releases/latest | grep -i location | sed 's/.*tag\///' | tr -d '\r\n')
+        LG_VER="${LG_TAG#v}"
+        if [[ "$OS_NAME" == "macos" ]]; then
+            # lazygit_0.58.1_darwin_arm64.tar.gz
+            curl -sL "https://github.com/jesseduffield/lazygit/releases/download/${LG_TAG}/lazygit_${LG_VER}_darwin_${ARCH_SUFFIX}.tar.gz" -o lazygit.tar.gz
+        else
+            curl -sL "https://github.com/jesseduffield/lazygit/releases/download/${LG_TAG}/lazygit_${LG_VER}_linux_${ARCH_SUFFIX}.tar.gz" -o lazygit.tar.gz
+        fi
+        mkdir -p lazygit_tmp
+        tar -xzf lazygit.tar.gz -C lazygit_tmp
+        find lazygit_tmp -type f -name "lazygit" -exec cp {} "$NEXUS_BIN/" \;
+        rm -rf lazygit.tar.gz lazygit_tmp
     fi
     
     chmod +x "$NEXUS_BIN"/*
@@ -163,13 +240,21 @@ if [[ "$DOWNLOAD_TOOLS" =~ ^[Yy]$ ]]; then
     cp -r "$NEXUS_HOME/config/yazi" "$TOOL_CONFIGS/"
     echo "    Tool configs installed to $TOOL_CONFIGS"
     
+    # Detect default chat tool
+    DETECTED_CHAT=""
+    command -v opencode &>/dev/null && DETECTED_CHAT="opencode"
+    [[ -z "$DETECTED_CHAT" ]] && command -v aider &>/dev/null && DETECTED_CHAT="aider"
+
     # Write tools config to use downloaded binaries with isolated configs
     cat > "$CONFIG_DIR/tools.conf" << EOF
 # Nexus-Shell Tool Configuration (downloaded binaries, isolated configs)
 NEXUS_EDITOR="$NEXUS_BIN/nvim"
 NEXUS_FILES="$NEXUS_BIN/yazi"
 NEXUS_RENDER="$NEXUS_BIN/glow"
-NEXUS_CHAT=""
+NEXUS_GUM="$NEXUS_BIN/gum"
+NEXUS_GIT="$NEXUS_BIN/lazygit"
+NEXUS_CHAT="$DETECTED_CHAT"
+NEXUS_PX_UI="tmux"
 NEXUS_ISOLATED="true"
 EOF
 
@@ -180,6 +265,7 @@ else
     MISSING=""
     command -v nvim &>/dev/null || MISSING="$MISSING nvim"
     command -v yazi &>/dev/null || MISSING="$MISSING yazi"
+    command -v gum &>/dev/null || MISSING="$MISSING gum"
     
     if [[ -n "$MISSING" ]]; then
         echo ""
@@ -191,13 +277,21 @@ else
     # Check optional tools
     command -v glow &>/dev/null || echo "    Note: glow not found (optional, for markdown preview)"
     
+    # Detect default chat tool
+    DETECTED_CHAT=""
+    command -v opencode &>/dev/null && DETECTED_CHAT="opencode"
+    [[ -z "$DETECTED_CHAT" ]] && command -v aider &>/dev/null && DETECTED_CHAT="aider"
+
     # Write tools config to use system binaries
-    cat > "$CONFIG_DIR/tools.conf" << 'EOF'
+    cat > "$CONFIG_DIR/tools.conf" << EOF
 # Nexus-Shell Tool Configuration (system binaries)
 NEXUS_EDITOR="nvim"
 NEXUS_FILES="yazi"
 NEXUS_RENDER="glow"
-NEXUS_CHAT=""
+NEXUS_GUM="gum"
+NEXUS_GIT="lazygit"
+NEXUS_CHAT="$DETECTED_CHAT"
+NEXUS_PX_UI="tmux"
 EOF
 fi
 
@@ -211,6 +305,13 @@ mkdir -p "$CONFIG_DIR"
 cp -r "$NEXUS_HOME/config/tmux" "$CONFIG_DIR/"
 cp -r "$NEXUS_HOME/themes" "$CONFIG_DIR/"
 cp -r "$NEXUS_HOME/scripts" "$CONFIG_DIR/"
+
+# Install Nexus actions to Parallax
+if [[ -d "$HOME/.parallax/content/actions" ]]; then
+    echo "    Installing Nexus actions to Parallax..."
+    mkdir -p "$HOME/.parallax/content/actions/nexus"
+    cp -rf "$NEXUS_HOME/actions/"* "$HOME/.parallax/content/actions/nexus/" 2>/dev/null || true
+fi
 
 # Copy example configs and integration files
 mkdir -p "$CONFIG_DIR/nvim-integration"

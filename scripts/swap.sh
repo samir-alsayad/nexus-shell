@@ -57,6 +57,11 @@ get_current_file() {
 
 # Find the editor pane (pane 1 in standard layout, or pane with editor/render title)
 get_editor_pane() {
+    # Use exported index if available
+    if [[ "${PX_NEXUS_EDITOR_PANE:- -1}" -ge 0 ]]; then
+        echo "$PX_NEXUS_EDITOR_PANE"
+        return
+    fi
     # Try by title first
     local pane=$(tmux list-panes -F "#{pane_id} #{pane_title}" 2>/dev/null | grep -E "editor|render" | head -1 | awk '{print $1}')
     if [[ -n "$pane" ]]; then

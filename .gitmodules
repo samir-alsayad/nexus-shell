@@ -1,0 +1,3 @@
+[submodule "modules/parallax"]
+	path = modules/parallax
+	url = https://github.com/samir-alsayad/parallax.git
