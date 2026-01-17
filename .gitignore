@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Binaries (downloaded at install, not committed)
+bin/*
+!bin/.gitkeep
+
+# Temporary/State files
+*.tmp
+*.log
+*.pid
+
+# User config (created at install)
+tools.conf.local
+
+# IDE
+.idea/
+.vscode/

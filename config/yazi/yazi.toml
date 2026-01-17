@@ -1,0 +1,19 @@
+# Nexus-Shell Yazi Configuration
+# VSCode-style file navigator
+
+[mgr]
+ratio = [1, 3, 0]
+show_hidden = true
+sort_by = "natural"
+sort_dir_first = true
+linemode = "size"
+
+[opener]
+edit = [
+    { run = '$HOME/.config/nexus-shell/scripts/yazi_open.sh "$@"', block = true, desc = "Open" }
+]
+
+[open]
+rules = [
+    { name = "*", use = "edit" }
+]
